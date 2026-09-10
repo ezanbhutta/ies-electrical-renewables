@@ -41,7 +41,7 @@ function Segmented({
       role="group"
       aria-labelledby={labelledBy}
       className="flex max-md:flex-col"
-      style={{ border: '1px solid var(--field-border)', borderRadius: 'var(--r)' }}
+      style={{ background: 'rgba(16, 37, 26, 0.06)', borderRadius: 'var(--r)', padding: 4, gap: 4 }}
     >
       {enquiry.types.map((t, i) => {
         const selected = t === value;
@@ -69,14 +69,12 @@ function Segmented({
               // each end. Derived from the token now, so it cannot go stale
               // again. This is the stacked (column) axis; the row axis swaps in
               // the .seg-opt media query in globals.css.
-              borderRadius:
-                i === 0
-                  ? 'calc(var(--r) - 1px) calc(var(--r) - 1px) 0 0'
-                  : i === enquiry.types.length - 1
-                    ? '0 0 calc(var(--r) - 1px) calc(var(--r) - 1px)'
-                    : 0,
-              borderTop: i === 0 ? 'none' : '1px solid var(--field-border)',
-              background: selected ? 'var(--green-700)' : 'var(--surface-field)',
+              /* Each option is its own pill inside the track: inner radius is
+                 the shell's radius minus its 4px padding, so the two sit
+                 concentric. No dividers — the gap between pills does that job
+                 now that there is no outline to divide. */
+              borderRadius: 'calc(var(--r) - 4px)',
+              background: selected ? 'var(--green-700)' : 'transparent',
               color: selected ? 'var(--cream-50)' : 'var(--ink-900)',
               fontWeight: selected ? 'var(--w-mark)' : 'var(--w-ui)',
               transition: 'background-color 150ms ease-out, color 150ms ease-out',
@@ -117,12 +115,12 @@ function Field({
     value,
     'aria-invalid': error ? true : undefined,
     'aria-describedby': error ? errId : undefined,
+    className: 'field-input',
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value),
     style: {
       width: '100%',
       background: 'var(--field-bg)',
       color: 'var(--field-text)',
-      border: `1px solid ${error ? 'var(--state-error)' : 'var(--field-border)'}`,
       borderRadius: 'var(--r)',
       padding: textarea ? '12px 16px' : '0 16px',
       height: textarea ? undefined : 48,
@@ -471,7 +469,7 @@ export function EnquiryForm() {
                       type="checkbox"
                       checked={f.capability}
                       onChange={(e) => setF((p) => ({ ...p, capability: e.target.checked }))}
-                      style={{ width: 20, height: 20, marginTop: 2, accentColor: 'var(--green-700)' }}
+                      className="check-box"
                     />
                     <span className="text-body" style={{ color: 'var(--body)' }}>
                       {enquiry.capabilityCheckbox}

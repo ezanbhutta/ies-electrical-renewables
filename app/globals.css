@@ -951,26 +951,6 @@ p {
   .fact-row:hover { background: rgba(251, 250, 246, 0.03); }
 }
 
-/* The segmented control stacks below 1024, which is the first width where its
-   three options fit on one row (their intrinsic widths total 366px against a
-   249px track at 768). Above that it returns to a row and the corner radii and
-   divider swap axis with it. */
-@media (min-width: 1024px) {
-  /* calc(var(--r) - 1px), never a literal. These were 7px — the token's value
-     before the redesign moved --r to 12 — so the segments sat 5px inside the
-     shell's corner and its border read as a broken line at both ends. */
-  .seg-opt:first-child {
-    border-radius: calc(var(--r) - 1px) 0 0 calc(var(--r) - 1px) !important;
-    border-top: none !important;
-  }
-  .seg-opt:last-child {
-    border-radius: 0 calc(var(--r) - 1px) calc(var(--r) - 1px) 0 !important;
-  }
-  .seg-opt:not(:first-child) {
-    border-top: none !important;
-    border-left: 1px solid var(--field-border) !important;
-  }
-}
 
 /* ============================================================================
    COMMON QUESTIONS accordion. Native <details>, so zero JS and keyboard
@@ -1706,4 +1686,81 @@ p {
   .btn--quiet::after {
     transition: opacity 200ms ease-out;
   }
+}
+
+/* ============================================================================
+   FORM CONTROLS WITHOUT OUTLINES — at the client's call.
+
+   Fields were outlined in --field-border (3.53:1 on white), which is what
+   WCAG 1.4.11 asks for: a text field's boundary should reach 3:1 against its
+   surroundings. With the outline gone the boundary is the white fill against
+   the cream-100 card, about 1.1:1 — below that guideline, and knowingly so.
+
+   What keeps the form usable in its place:
+     - every field sits directly under a visible text label;
+     - a faint inset shadow gives the fill a top edge to read as a recess;
+     - FOCUS is strong and unmistakable, a 2px green ring at 11:1, because
+       the moment someone is typing is the moment the boundary matters most;
+     - an ERROR still draws a 2px red ring. That is a state signal, not
+       decoration, and removing it would hide which field failed.
+   ========================================================================= */
+.field-input {
+  border: 0;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(16, 37, 26, 0.07);
+  transition: box-shadow 150ms ease-out;
+}
+.field-input:hover {
+  box-shadow: inset 0 1px 3px rgba(16, 37, 26, 0.12);
+}
+.field-input:focus,
+.field-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--green-700);
+}
+.field-input[aria-invalid='true'] {
+  box-shadow: inset 0 0 0 2px var(--state-error);
+}
+.field-input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 2px var(--state-error);
+}
+
+.seg-opt:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--green-700);
+}
+
+/* A drawn checkbox, so it can lose its native outline and still show state. */
+.check-box {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 7px;
+  background: var(--surface-field);
+  box-shadow: inset 0 1px 2px rgba(16, 37, 26, 0.10);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+.check-box::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  background: var(--cream-50);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  transform: scale(0);
+  transition: transform 120ms ease-out;
+}
+.check-box:checked {
+  background: var(--green-700);
+}
+.check-box:checked::before {
+  transform: scale(1);
+}
+.check-box:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--green-700);
 }
