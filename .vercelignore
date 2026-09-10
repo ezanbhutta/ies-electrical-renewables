@@ -1,0 +1,8 @@
+node_modules
+.next
+out
+screenshots
+DESIGN-DIRECTION.md
+
+.vercel
+.env.local

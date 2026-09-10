@@ -1,0 +1,1709 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   IES — token system. Every value is derived in DESIGN-DIRECTION.md.
+   Contrast ratios in comments are computed, not estimated.
+   ========================================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* ---- 1. BRAND PRIMITIVES (lifted from the SVG, unaltered) ---- */
+  --brand-green: #1b3a2b; /* .cls-1 — the three letterform elements */
+  --brand-gold: #cba135;  /* .cls-2 — the E bar and all 21 strapline glyphs */
+
+  /* ---- 2. DARK GROUNDS ---- */
+  --green-900: #10251a;
+  --green-800: #16351f;
+  --green-700: #1b3a2b;
+  --green-600: #24503a; /* SURFACE + HOVER ONLY. Never a text ground for gold (3.80) or muted (4.32) */
+
+  /* ---- 3. GOLD, two steps split by ground family ---- */
+  --gold-500: #cba135; /* DARK ONLY.  g900 6.68 | g800 5.56 | g700 5.15 */
+  --gold-600: #b8912e; /* pressed state of a gold fill (fg 5.48) */
+  --gold-300: #d9b65a; /* hover for gold text on dark (g900 8.29) */
+  --gold-ink: #8a6220; /* LIGHT ONLY. cream-50 5.22 | cream-100 4.83 | white 5.46 */
+
+  /* ---- 4. LIGHT GROUNDS ---- */
+  --cream-50: #fbfaf6;
+  --cream-100: #f3f1e9;
+  --surface-field: #ffffff;
+
+  /* ---- 5. TEXT ON LIGHT ---- */
+  --ink-900: #14201a;  /* cream-50 16.07 | cream-100 14.84 */
+  --body-700: #41504a; /* cream-50  8.14 | cream-100  7.51 */
+  --muted-600: #5f6b64; /* replaces the brief's #7C877F, which is 3.57 and FAILS. 5.33 | 4.92 */
+
+  /* ---- 6. TEXT ON DARK ---- */
+  --on-dark: #fbfaf6;       /* g900 14.27 | g800 11.88 | g700 11.01 */
+  --on-dark-body: #c9d4cb;  /* g900 10.57 | g800  8.80 | g700  8.16 */
+  --on-dark-muted: #a8b5ac; /* g900  7.58 | g800  6.31 | g700  5.85 */
+
+  /* ---- 7. RULES ---- */
+  --rule-light: #e3dfd4;
+  --rule-light-strong: #d6d1c2;
+  --rule-dark: rgba(251, 250, 246, 0.14);        /* HORIZONTAL rules on dark */
+  --rule-dark-strong: rgba(251, 250, 246, 0.24); /* VERTICAL dividers on dark (§2.5 rule 3) */
+  --rule-accent-dark: #cba135;
+  --rule-accent-light: #cba135; /* MINIMUM 2px on cream: at 1px and 2.31 a gold hairline dies */
+
+  /* ---- 8. BUTTONS ---- */
+  --btn-gold-bg: #cba135;
+  --btn-gold-fg: #10251a; /* 6.68. NEVER white on gold (2.42) */
+  --btn-gold-bg-hover: #d9b65a; /* fg 8.29 — lifts, never dulls */
+  --btn-gold-bg-press: #b8912e; /* fg 5.48 */
+  --btn-green-bg: #1b3a2b;
+  --btn-green-fg: #fbfaf6; /* 11.92 */
+  --btn-green-bg-hover: #10251a; /* fg 15.45 */
+  --btn-ghost-dark-border: rgba(251, 250, 246, 0.45); /* 4.21 on g900, clears 3:1 */
+  --btn-ghost-dark-fg: #fbfaf6;
+  --btn-ghost-dark-hover: rgba(251, 250, 246, 0.08);
+
+  /* ---- 9. FOCUS — one treatment legal on every ground ---- */
+  --focus-ring: #cba135;
+  --focus-keyline: #10251a;
+
+  /* ---- 10. FORM ---- */
+  --field-bg: #ffffff;
+  --field-border: #8f8877; /* 3.53 on white — 1.4.11 needs 3:1 for a UI component */
+  --field-border-hover: #5f6b64;
+  --field-border-focus: #1b3a2b;
+  --field-text: #14201a;
+  --field-placeholder: #646f68; /* 5.23 on white */
+  --field-hint: #5f6b64;
+
+  /* ---- 11. STATE — functional only ---- */
+  --state-error: #8e2419; /* cream-50 8.32 | white 8.69. Far in VALUE from gold */
+  --state-success: #1b3a2b;
+
+  /* ---- 12. LOGO ---- */
+  --logo-letter: #1b3a2b;
+  --logo-accent: #cba135;
+
+  /* ---- 13. GEOMETRY ---- */
+  /* The content measure is a RATIO, not a pixel cap: the page holds the same
+     content-to-viewport proportion at every screen size, so the outer margin
+     is always ~8% and never a growing empty band on a large display.
+     At a 2050px viewport this resolves to 1722px content on 164px margins,
+     which is where the 12 x 125 + 11 x 20 = 1720 grid lands almost exactly. */
+  --measure-ratio: 84%;
+  --page-margin: 8%;
+  --cols: 12;
+  --gutter: clamp(16px, 12.4px + 1vw, 28px);
+  /* The gutter count is cols - 1, not a hardcoded 11: at the 8 and 4 column
+     breakpoints an 11 would under-report the column width. */
+  --col: calc((100% - (var(--cols) - 1) * var(--gutter)) / var(--cols));
+  --pitch: calc(var(--col) + var(--gutter));
+  --void: calc(var(--col) + 2 * var(--gutter));
+  --page-gutter: var(--page-margin); /* skip link only; the container owns the measure */
+  /* Declared with the rhythm block below, not here: it is fluid now. */
+
+  /* RADIUS — REDESIGN 2026-09. The previous scale derived every radius from the
+     mark's 14.48% stroke ratio and capped surfaces at 12px, which produced a
+     deliberately sharp page. The reference direction is the opposite: pill
+     controls, generously rounded surfaces, circular icon plates. That is now
+     the house geometry, and it is stated as a CHOICE rather than a derivation
+     so nobody hunts for arithmetic that does not exist.
+
+     Two things survive from the old scale because they are still measurements
+     rather than taste:
+       --r-bar  the accent bar's own 2px, taken off the artwork
+       --r-0    every inner edge, which must stay square to divide cleanly
+     Everything else is set to the reference language. */
+  --r-bar: 2px;    /* stroke scale: the accent bar, small marks */
+  --r-pill: 999px; /* buttons, tag chips, icon circles, arrow plates */
+  --r: 12px;       /* controls that cannot be pills: inputs, selects, textarea */
+  --r-lg: 20px;    /* surfaces: cards, the form card */
+  --r-xl: 28px;    /* large planes: photo frames, the hero nameplate, bands */
+  --r-0: 0;      /* every INNER edge, every rule, every cell division */
+
+  --bar-w: 48px;
+  --bar-h: 14px;
+  --bar-sm-w: 16px;
+  --bar-sm-h: 5px;
+
+  /* The paragraph measure is fluid too. A hard 640px cap is ~74 characters at
+     18px and ~40 at 16px, so the same token gave a comfortable line on a large
+     screen and a cramped one on a small. */
+  --text-measure: clamp(320px, 288px + 22vw, 660px);
+
+  /* SECTION RHYTHM — fluid, for the same reason the type is. Fixed padding in
+     a container that is 84% of the viewport means the ratio of white space to
+     content changes at every width: 96px against an 860px container at 1024 is
+     proportionally half again what it is against 1613px at 1920.
+     Derivation is the same as the type scale in tailwind.config.ts:
+        b = (max - min) / (1600 - 360);  a = min - b * 360 */
+  --section-pad: clamp(56px, 42.06px + 3.871vw, 104px);
+  --hero-pad: clamp(48px, 34.06px + 3.871vw, 96px);
+  --pad-surface: clamp(20px, 15.36px + 1.2903vw, 36px);
+
+  /* ---- 14. TYPE ---- */
+  --font: var(--font-manrope), 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --w-text: 400;
+  --w-ui: 600;
+  --w-mark: 800;
+
+  /* cap-trim constants — GENERATED by scripts/gen-trim.mjs from the shipped
+     Manrope file (upm 2000, cap 1440, hheaAsc 2132, hheaDesc -600).
+     These are bound to the typeface: regenerate on any font change. */
+  --trim-top: 0.337;
+  --trim-bottom: 0.383;
+}
+
+/* ---- GROUND SCOPES — set on the <section>; children are legal by construction ---- */
+.ground-cream,
+.ground-cream-100 {
+  --ground: var(--cream-50);
+  --micro: var(--gold-ink);
+  --bar-fill: var(--gold-ink);
+  --heading: var(--ink-900);
+  --body: var(--body-700);
+  --muted: var(--muted-600);
+  --rule: var(--rule-light);
+  --rule-strong: var(--rule-light-strong);
+  --numeral: var(--gold-ink);
+  --chip-bg: rgba(203, 161, 53, 0.14);
+  --link: var(--ink-900);
+  --link-hover: var(--gold-ink);
+  --logo-letter: #1b3a2b;
+  --logo-accent: #1b3a2b;
+}
+.ground-cream {
+  background: var(--cream-50);
+}
+.ground-cream-100 {
+  background: var(--cream-100);
+  --ground: var(--cream-100);
+}
+
+.ground-green-900,
+.ground-green-800,
+.ground-green-700 {
+  --micro: var(--gold-500);
+  --bar-fill: var(--gold-500);
+  --heading: var(--on-dark);
+  --body: var(--on-dark-body);
+  --muted: var(--on-dark-muted);
+  --rule: var(--rule-dark);
+  --rule-strong: var(--rule-dark-strong);
+  --numeral: var(--gold-500);
+  --chip-bg: rgba(203, 161, 53, 0.16);
+  --link: var(--on-dark);
+  --link-hover: var(--gold-300);
+  --logo-letter: var(--on-dark);
+  --logo-accent: var(--gold-500);
+}
+.ground-green-900 {
+  background: var(--green-900);
+  --ground: var(--green-900);
+}
+.ground-green-800 {
+  background: var(--green-800);
+  --ground: var(--green-800);
+}
+.ground-green-700 {
+  background: var(--green-700);
+  --ground: var(--green-700);
+}
+
+/* NO padding overrides here any more. --section-pad, --hero-pad, --pad-surface
+   and --gutter are all clamps, so they interpolate continuously and there is no
+   step to override. Only the COLUMN COUNT still switches, because a column
+   count is an integer and cannot be interpolated. */
+@media (max-width: 1023px) {
+  :root {
+    --cols: 8;
+  }
+}
+@media (max-width: 767px) {
+  :root {
+    --cols: 4;
+  }
+}
+
+/* ============================================================================
+   THE ONE CONTAINER PRIMITIVE (§2.6)
+   This is the only rule in the codebase that may set a horizontal max-width,
+   auto margin or horizontal page padding.
+   ========================================================================= */
+.ies-container {
+  width: var(--measure-ratio);
+  margin-inline: auto;
+}
+
+/* Grid: every section declares one, every child is placed on it.
+   `row-gap` is NOT set here. Several sections carry their own stacking margin
+   (`max-md:mt-6` and friends) and a blanket row-gap would double up with it.
+   Card ROWS opt in via .ies-grid--rows below. */
+.ies-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+  column-gap: var(--gutter);
+}
+
+/* A row of equal cards. Once the columns collapse the cards stack, and with no
+   row gap two 500px surfaces met edge to edge with only their corner radii
+   between them. Slightly larger than the column gutter, because vertical
+   neighbours need more separation than horizontal ones to read as separate. */
+.ies-grid--rows {
+  row-gap: clamp(20px, 14.2px + 1.6vw, 36px);
+}
+
+/* ============================================================================
+   CAP TRIM (§2.4) — makes a declared padding measure to visible ink.
+   Block-level text only. NEVER on an inline <a>.
+   ========================================================================= */
+.t::before,
+.t::after {
+  content: '';
+  display: block;
+  height: 0;
+}
+.t::before {
+  margin-bottom: calc(var(--trim-top) * 1em - 0.5lh);
+}
+.t::after {
+  margin-top: calc(var(--trim-bottom) * 1em - 0.5lh);
+}
+@supports (text-box: trim-both cap alphabetic) {
+  .t {
+    text-box: trim-both cap alphabetic;
+  }
+  /* `content: none`, NOT `margin: 0`. A block pseudo at each edge leaves no
+     first or last line box for `text-box` to trim, so the property computes
+     and does nothing — which silently disabled the whole spacing premise in
+     every Chromium and WebKit browser while Firefox got the intended rhythm. */
+  .t::before,
+  .t::after {
+    content: none;
+  }
+}
+
+/* ============================================================================
+   THE ONE ORNAMENT (§1.4) — the E's bar, two sizes, never stretched.
+   ========================================================================= */
+.bar {
+  display: block;
+  width: var(--bar-w);
+  height: var(--bar-h);
+  border-radius: var(--r-bar);
+  background: var(--bar-fill);
+  flex: none;
+}
+.bar-sm {
+  display: block;
+  width: var(--bar-sm-w);
+  height: var(--bar-sm-h);
+  border-radius: var(--r-0); /* under 14px minor dimension */
+  background: var(--bar-fill);
+  flex: none;
+}
+
+/* ============================================================================
+   THE CHIP — the section eyebrow as a closed, bordered box.
+   Every reference site opens a section this way. A box has a computable centre,
+   which is what lets the headline and sub beneath it share one axis; the
+   previous bar-over-label pair had only a left edge.
+   ========================================================================= */
+.chip {
+  /* BLOCK level, not inline — a flex container is block-level, so this keeps
+     the original fix: as an inline box it sat on a line box whose strut ascent
+     (Manrope hheaAsc 1.066em) exceeded its own height, pushing every section's
+     first ink 4px below the declared padding.
+
+     It is a closed pill. It carried a 5px disc as well until the eyebrow was
+     cut from eleven sections to two — with only two pills left on the page, a
+     disc inside a pill was decoration on decoration.
+
+     The pill is now used TWICE, deliberately: the hero and the gold band. It
+     is not the default treatment. See SectionHeader in Primitives.tsx. */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  height: 32px;
+  padding-inline: 14px;
+  border-radius: var(--r-pill);
+  background: var(--chip-bg);
+  color: var(--micro);
+}
+/* Cap-trim is what centres the LABEL inside the pill; the flex row then centres
+   the disc against that trimmed box. Without this the label's line box carries
+   Manrope's full ascent and the text sits low, taking the disc with it. */
+.chip > .t {
+  display: block;
+}
+/* Centred section heads centre the tag on the container axis; left aligned
+   ones hang it from the same left edge as the headline. */
+[style*='text-align: center'] .chip,
+[style*='text-align:center'] .chip {
+  align-items: center;
+  margin-inline: auto;
+}
+
+/* ============================================================================
+   THE KEYWORD ACCENT — two implementations, split by ground, and the split is
+   arithmetic rather than taste.
+
+   The references recolour one word (Biztop's "BUSINESS" in lime, Catalxg's
+   "A Click Away" in orange). On a DARK ground that is available to us and now
+   happens: --gold-500 on --green-900 is 6.68:1, comfortably legal, so the word
+   is genuinely recoloured exactly as the references do.
+
+   On CREAM it stays a rule. True gold is 2.31:1 there and illegal as text at
+   any size; --gold-ink would clear it at 5.22 but reads brown beside the gold
+   used everywhere else on the page, so the emphasis would change hue halfway
+   down the scroll. An underline is a RULE rather than text, carries the real
+   brand gold, and leaves the word at full ink.
+   ========================================================================= */
+.accent-word {
+  /* `text-decoration` cannot be positioned reliably across browsers at this
+     weight, so the rule is a background image pinned to the text box.
+     `box-decoration-break: clone` is what makes it survive a line break: on the
+     default `slice` the background is positioned against the whole inline box,
+     so an accent spanning three lines draws one rule under the last fragment
+     and nothing under the other two. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-image: linear-gradient(var(--rule-accent-dark), var(--rule-accent-dark));
+  background-repeat: no-repeat;
+  background-size: 100% 2px;
+  background-position: 0 100%;
+  /* 6px, not 2. The rule is positioned at 100% of the PADDING box, so the
+     padding is what holds it clear of the word's own descenders — at 2px it
+     was drawn through the tail of a p or a g. */
+  padding-bottom: 6px;
+}
+/* Dark grounds recolour instead. The rule is removed rather than kept
+   alongside: gold text UNDER a gold rule doubles the emphasis and the word
+   stops reading as part of the sentence. */
+.ground-green-900 .accent-word,
+.ground-green-800 .accent-word,
+.ground-green-700 .accent-word {
+  background-image: none;
+  padding-bottom: 0;
+  color: var(--gold-500);
+}
+.ground-cream .accent-word,
+.ground-cream-100 .accent-word {
+  background-image: linear-gradient(var(--rule-accent-light), var(--rule-accent-light));
+  /* 3px on cream: the true gold is 2.31:1 there, so the rule needs the extra
+     weight to read. The WORD stays --ink-900 at 16.07:1, so no TEXT contrast
+     changes — only a decorative rule carries the lighter colour. */
+  background-size: 100% 3px;
+  padding-bottom: 7px;
+}
+
+/* ============================================================================
+   THE STRAPLINE SET AS LIVE TEXT (§4.5). The pipe is drawn, not typed.
+   ========================================================================= */
+.strapline {
+  display: block;
+  width: fit-content;
+  font: var(--w-text) 12px/16px var(--font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-ligatures: none;
+  white-space: nowrap;
+  color: var(--micro);
+  /* Manrope's E carries a negligible left side bearing at 12px, as Archivo did
+     before it, so the direction's -0.075em nudge overshoots L1. Zeroed, so the
+     strapline's first stem and the hairline above it share an exact left edge.
+     The right margin stays: it cancels the trailing letter-space, which CSS
+     always appends after the final glyph. */
+  margin-left: 0;
+  margin-right: -0.06em;
+}
+.strapline__sep {
+  display: inline-block;
+  width: 1px;
+  height: 11px;
+  margin: 0 6px;
+  vertical-align: -1.26px;
+  background: currentColor;
+}
+/* ============================================================================
+   LINKS (§4.7) — the underline is permanent, never hover-only; hover changes
+   colour only. Icons now exist on this page, but only at card scale and never
+   inline in text, so a link in prose still has nothing but its underline.
+   ========================================================================= */
+/* NO RULE AT REST. Every `.lnk` on this page is a standalone link — a footer
+   nav item, a contact row, a card's action — not a word inside a sentence, so
+   nothing needs underlining to be told apart from the prose around it. The rule
+   returns on hover and focus, which is where it actually helps.
+
+   This would NOT be safe on an inline link inside a paragraph: WCAG 1.4.1 needs
+   more than colour to mark those. If one is ever added, give it `.lnk--inline`
+   and keep the rule at rest. */
+.lnk {
+  color: var(--link);
+  text-decoration: none;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 150ms ease-out;
+}
+.lnk:hover,
+.lnk:focus-visible {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+.lnk--inline {
+  text-decoration: underline;
+}
+
+/* Nav links carry no underline at rest; they gain a gold one on hover/focus. */
+.nav-lnk {
+  color: var(--on-dark);
+  text-decoration: none;
+  padding-block: 12px;
+  transition: color 150ms ease-out;
+}
+.nav-lnk:hover,
+.nav-lnk:focus-visible {
+  text-decoration: underline;
+  text-decoration-color: var(--gold-500);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
+/* ============================================================================
+   FOCUS — one treatment legal on every ground.
+   ========================================================================= */
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--focus-ring),
+    0 0 0 4px var(--focus-keyline);
+  border-radius: var(--r);
+}
+/* On a GOLD fill the default ring is invisible: its inner band is #CBA135, the
+   same colour as the button, and its outer keyline is #10251A, the same colour
+   as the dark ground. Focusing a primary CTA just dilated the gold plate by
+   2px. Swapping the band order gives a dark keyline on gold (6.68:1) and a gold
+   band on green (6.68:1), so both edges are visible on both grounds. */
+.btn--gold:focus-visible,
+.skip:focus-visible,
+.gate-opt:has(input:focus-visible)[data-on='true'] {
+  box-shadow:
+    0 0 0 2px var(--focus-keyline),
+    0 0 0 4px var(--focus-ring);
+}
+
+/* ---- DEFECT 4: the Gate's radios are `.vh`, i.e. clipped to a 1x1 box, so the
+   page's outset focus ring had nowhere to paint and all ten threshold options
+   had NO visible focus indicator at all. The ring has to go on the label. */
+.gate-opt {
+  position: relative;
+}
+.gate-opt:focus-within {
+  box-shadow:
+    0 0 0 2px var(--focus-ring),
+    0 0 0 4px var(--focus-keyline);
+}
+@supports selector(:has(*)) {
+  .gate-opt:focus-within { box-shadow: none; }
+  .gate-opt:has(input:focus-visible) {
+    box-shadow:
+      0 0 0 2px var(--focus-ring),
+      0 0 0 4px var(--focus-keyline);
+  }
+}
+
+/* ============================================================================
+   BUTTONS — REDESIGN. Pills, 52 tall, width follows the label.
+
+   The old rule read "radius 2px, 48 tall, no pills anywhere". The reference
+   direction is unanimously pill, so that is reversed. Height moved 48 -> 52
+   because a pill reads shorter than a rectangle of the same height: the corner
+   eats vertical presence at both ends, and 52 restores the optical mass the
+   old 48px rectangle had. Padding moved 24 -> 28 for the same reason — a pill
+   needs more horizontal room before the label stops looking pinched by the
+   curve.
+
+   NO COUNTER-PLATE. Every button carried a filled disc holding an arrow — the
+   Biztop/Auron/Inconsl device — and it is gone at the client's call: eight
+   buttons on one page all wearing the same ornament is the ornament becoming a
+   uniform. A label that says "Request a quote" does not need an arrow to
+   explain that it goes somewhere.
+   ========================================================================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  /* min-height, not height. A fixed height cannot contain a label that wraps,
+     and on a 320px screen "Send us the scope" plus a 40px counter-plate does
+     not fit one line inside a full width button. */
+  min-height: 52px;
+  max-width: 100%;
+  padding-inline: 28px;
+  border-radius: var(--r-pill);
+  font: var(--w-ui) 16px/24px var(--font);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out;
+}
+
+/* Below 380px the label is allowed to wrap. `nowrap` there forced the button
+   4px past the viewport and gave the whole page a horizontal scrollbar. */
+@media (max-width: 380px) {
+  .btn {
+    white-space: normal;
+    text-align: center;
+    padding-block: 12px;
+    padding-inline: 20px;
+  }
+}
+
+.btn--gold {
+  background: var(--btn-gold-bg);
+  color: var(--btn-gold-fg);
+  border: 1px solid var(--btn-gold-bg);
+}
+.btn--gold:hover {
+  background: var(--btn-gold-bg-hover);
+  border-color: var(--btn-gold-bg-hover);
+}
+.btn--gold:active {
+  background: var(--btn-gold-bg-press);
+  border-color: var(--btn-gold-bg-press);
+}
+.btn--green {
+  background: var(--btn-green-bg);
+  color: var(--btn-green-fg);
+  border: 1px solid var(--btn-green-bg);
+}
+.btn--green:hover {
+  background: var(--btn-green-bg-hover);
+  border-color: var(--btn-green-bg-hover);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--btn-ghost-dark-fg);
+  border: 1px solid var(--btn-ghost-dark-border);
+}
+.btn--ghost:hover {
+  background: var(--btn-ghost-dark-hover);
+  border-color: var(--on-dark);
+}
+
+/* ============================================================================
+   FIGURES (§4.6)
+   ========================================================================= */
+.num {
+  /* PROPORTIONAL, not tabular. Tabular figures exist to make COLUMNS of
+     numbers align, and nothing on this page is in a column with anything.
+     What tabular actually did here was pad every glyph to a common width, so
+     "£10,000,000" carried a visible hole either side of its 1 and the process
+     numeral "01" showed ~12px between its glyphs against ~5px on "02". At 44px
+     ExtraBold that reads as unkerned — the classic sign that nobody looked at
+     the number after setting it. `proportional-nums` restores Manrope's own
+     drawn sidebearings. `lining-nums` is a no-op in this family and is kept
+     only as a hedge against the typeface being swapped. */
+  font-variant-numeric: proportional-nums lining-nums;
+}
+
+/* ============================================================================
+   ENVIRONMENT GUARDS
+   ========================================================================= */
+@media (forced-colors: active) {
+  .card,
+  .field,
+  .fact-row,
+  .icon-badge,
+  .card-tile {
+    border: 1px solid CanvasText;
+  }
+  .bar,
+  .bar-sm {
+    forced-color-adjust: none;
+    background: Highlight;
+  }
+  :focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* `animation-duration` alone does NOT stop a scroll driven animation: its
+       progress comes from scroll position, not from elapsed time. Every
+       animation here is already inside a `no-preference` guard, but declaring
+       `animation: none` means a future unguarded one cannot slip through. */
+    animation: none !important;
+    animation-timeline: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================================
+   GLOBAL
+   ========================================================================= */
+html {
+  scroll-behavior: smooth;
+}
+[id] {
+  scroll-margin-top: 88px;
+}
+@media (max-width: 767px) {
+  [id] {
+    scroll-margin-top: 64px;
+  }
+}
+body {
+  font-family: var(--font);
+  font-synthesis-weight: none;
+  font-synthesis-style: none;
+  hyphens: none;
+  -webkit-hyphens: none;
+  background: var(--cream-50);
+  color: var(--body-700);
+  -webkit-font-smoothing: antialiased;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  color: var(--heading);
+}
+p {
+  text-wrap: pretty;
+}
+
+/* NO BLANKET `max-width` ON <p> ANY MORE.
+   It capped every paragraph at --text-measure (~605px at 1440) while the
+   columns those paragraphs sit in are 5 to 7 tracks wide (~570-830px). So in
+   most sections the heading ran the full column and the paragraph under it
+   wrapped 90px early, which reads as a mistake rather than as a measure. The
+   COLUMN is the measure now — it is already a considered width — and the only
+   places that still need their own cap are the ones with no column to bound
+   them: centred section subs (SectionHeader applies a 6 track measure itself)
+   and anything spanning all 12. --text-measure is kept for those callers. */
+
+/* JUSTIFIED BODY COPY.
+   Asked for explicitly, and reaffirmed. Applied ONLY to running body text —
+   never to headings (a justified display line stretches into gaps you could
+   park a van in), never to micro labels, never to a single-line value.
+
+   `text-wrap: pretty` is dropped on these because it fights the justifier for
+   control of the last lines.
+
+   OPT-IN, via `.prose`, and that is a correction rather than a preference.
+   Selecting on `.text-body` caught every short value that happens to use the
+   body size — table cells, list rows, gate answers — and justifying a two word
+   cell does the one thing justification must never do: it broke
+   "inspection" to "in-spection" inside a three word qualification. Running
+   prose only. */
+.prose {
+  text-wrap: auto;
+  /* NO HYPHENATION. `hyphens: auto` was the standard mitigation for
+     justified text and it is not available here: this page's content rule is
+     that no hyphen or dash appears in visible copy, and the content audit
+     enforces it on every string — a hyphen inserted by the RENDERER breaks the
+     same rule the copy is held to, just later in the pipeline. It also
+     produced "in-spection" inside a three word qualification.
+
+     The cost is real and accepted: without hyphenation the justifier puts all
+     its slack into word spacing. It stays tolerable because these paragraphs
+     run at a 590px-ish measure (~65 characters), and because anything narrower
+     than 600px falls back to ragged right below. */
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+/* A justified LAST line is set flush left by definition, so a two line
+   paragraph shows the effect on exactly one line. Below 600px that is most of
+   them, and ragged-right reads better at a short measure than a hyphenated
+   justify does. */
+/* JUSTIFY ONLY WHERE THE MEASURE CAN ABSORB IT.
+   Without hyphenation the justifier has one place to put its slack: word
+   spacing. That is invisible on a long line and glaring on a short one, and
+   the threshold is the MEASURE, not the viewport — at a 561px six column track
+   (a 1366px laptop) a two line paragraph gave "Earned  before  this  company
+   existed" while the same paragraph on a 1728px MacBook set as one line and
+   looked perfect, which is the whole difference the client photographed.
+
+   1500px is where the wide columns on this page reach ~72 characters, which is
+   enough for the slack to disappear into. Everything below it is ragged right
+   — which is also exactly what a justified single line looks like, since a
+   last line is flush left by definition. So the two treatments agree at the
+   boundary rather than snapping. */
+.prose {
+  text-align: left;
+}
+@media (min-width: 1500px) {
+  .prose {
+    text-align: justify;
+  }
+}
+/* A centred wrapper wider than --text-measure would otherwise leave the capped
+   paragraph hanging on its left edge. SectionHeader sets marginInline on the
+   element too; this covers every other centred context. */
+[style*='text-align: center'] p,
+[style*='text-align:center'] p {
+  margin-inline: auto;
+}
+
+/* Skip link — visible on focus, lands above everything. */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+}
+.skip:focus {
+  left: var(--page-gutter);
+  top: 8px;
+  background: var(--gold-500);
+  color: var(--green-900);
+  padding: 12px 24px;
+  border-radius: var(--r);
+  font: var(--w-ui) 16px/24px var(--font);
+}
+
+/* Visually hidden but readable by assistive tech (the honeypot's label). */
+.vh {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============================================================================
+   MOTION — every behaviour below is derived from the mark, not decoration.
+
+   The logo gives us exactly three things worth animating:
+     1. A gold bar that COMPLETES a letterform. Without it the mark reads ICS,
+        so landing it last is the brand's own story told in time.
+     2. A vertical pipe (the strapline separator) — the only vertical accent
+        the identity owns.
+     3. An extreme weight axis, 400 against 800, which is the identity's whole
+        typographic signature and happens to be a real variable font axis.
+
+   Everything here is orthogonal, hard edged, and dies completely under
+   prefers-reduced-motion. No parallax, no scroll jacking, no counting up.
+   ========================================================================= */
+
+/* A registered custom property is what lets a variable font weight interpolate
+   smoothly; a plain --var would step. */
+@property --wght {
+  syntax: '<number>';
+  initial-value: 400;
+  inherits: false;
+}
+@property --bar-scale {
+  syntax: '<number>';
+  initial-value: 0;
+  inherits: false;
+}
+
+/* ---- 1. THE MARK COMPLETES ITSELF ---------------------------------------
+   The three letterforms settle, then the gold bar arrives into its slot and
+   the mark stops reading ICS and starts reading IES. */
+@keyframes ies-letter-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ies-bar-in {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ---- 2. THE CURRENT ------------------------------------------------------
+   A hard edged brighter segment travelling along a gold rule. An electrical
+   contractor's rule should carry current. It is a clipped gradient, not a
+   glow: the artwork has no soft edges anywhere. */
+@keyframes ies-current {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+
+/* ---- 3. SCROLL REVEAL ---------------------------------------------------- */
+@keyframes ies-rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ies-wght {
+  from { --wght: 400; }
+  to   { --wght: 800; }
+}
+@keyframes ies-wipe {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+/* A centred object must open from its own centre, not its left edge. */
+@keyframes ies-wipe-centre {
+  from { clip-path: inset(0 50% 0 50%); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The wordmark assembles once on load. Both places it appears — the sticky
+     header and the hero panel — are on screen when the page opens, so neither
+     ever "enters" the viewport and a scroll driven version would simply render
+     static. Everything BELOW the fold is scroll driven and replays every pass. */
+  .mark-anim [fill='var(--logo-letter)'] {
+    animation: ies-letter-in 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+  .mark-anim [fill='var(--logo-letter)']:nth-of-type(2) { animation-delay: 60ms; }
+  .mark-anim [fill='var(--logo-letter)']:nth-of-type(3) { animation-delay: 120ms; }
+  /* The bar lands last, and from the left, into the slot the C leaves open. */
+  .mark-anim [fill='var(--logo-accent)'] {
+    transform-origin: left center;
+    animation: ies-bar-in 300ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    animation-delay: 260ms;
+  }
+
+  /* Current travelling the hero hairline. */
+  .current { position: relative; overflow: hidden; }
+  .current::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, var(--gold-300), transparent);
+    animation: ies-current 3.2s linear infinite;
+    animation-delay: 900ms;
+  }
+
+  /* Reveal on scroll. Zero JS where view() timelines exist. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: ies-rise 480ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
+    .reveal-bar {
+      transform-origin: left center;
+      animation: ies-wipe 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    .reveal-chip {
+      animation: ies-wipe-centre 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+    /* The identity's own contrast device, made kinetic: the bold clause
+       weights up 400 -> 800 as it enters. */
+    .wght-in {
+      font-variation-settings: 'wght' var(--wght);
+      animation: ies-wght 600ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+  /* Fallback for browsers without scroll driven animations. */
+  @supports not (animation-timeline: view()) {
+    .reveal, .reveal-bar, .reveal-chip, .wght-in { opacity: 0; }
+    .is-in.reveal { animation: ies-rise 480ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+    .is-in.reveal-bar { animation: ies-wipe 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both; opacity: 1; }
+    .is-in.reveal-chip { animation: ies-wipe-centre 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both; opacity: 1; }
+    .is-in.wght-in {
+      opacity: 1;
+      font-variation-settings: 'wght' var(--wght);
+      animation: ies-wght 600ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    }
+  }
+
+  /* Hover: the card's ground steps and its link mark advances one bar width.
+     The bar never stretches — it moves. */
+  .card { transition: background-color 200ms ease-out, box-shadow 200ms ease-out; }
+  .card:hover { box-shadow: inset 0 0 0 1px var(--rule-light-strong); }
+  /* The card has exactly one moving part per surface, and it is the arrow.
+     The photograph gets a slow scale rather than a second transform on the
+     same axis: two things sliding right at once reads as a rendering fault. */
+  .card:hover .card-tile > svg { transform: translateX(3px); }
+  .card-tile > svg { transition: transform 200ms ease-out; }
+  /* The hover plate MIRRORS THE CARD'S OWN ICON BADGE, rather than being gold
+     on all three. A single gold treatment is invisible on the gold card and
+     puts a saturated disc on the cream one for no reason; taking the badge's
+     pair means the plate always inverts against the ground it sits on, and the
+     two round objects in a card agree instead of disagreeing.
+       gold card   -> green plate, gold arrow
+       cream card  -> green plate, gold arrow
+       dark card   -> gold plate, green arrow
+     Set per tone in Services.tsx; the fallbacks here keep any other .card
+     working. */
+  .card:hover .card-tile {
+    background: var(--tile-hover-bg, var(--gold-500));
+    border-color: var(--tile-hover-bg, var(--gold-500));
+    color: var(--tile-hover-fg, var(--green-900));
+  }
+  .card .photo img { transition: transform 600ms cubic-bezier(0.2, 0.7, 0.3, 1); }
+  .card:hover .photo img { transform: scale(1.04); }
+  .bar-sm { transition: transform 200ms ease-out; }
+
+  .fact-row { transition: background-color 200ms ease-out; }
+  .fact-row:hover { background: rgba(251, 250, 246, 0.03); }
+}
+
+/* The segmented control stacks below 1024, which is the first width where its
+   three options fit on one row (their intrinsic widths total 366px against a
+   249px track at 768). Above that it returns to a row and the corner radii and
+   divider swap axis with it. */
+@media (min-width: 1024px) {
+  /* calc(var(--r) - 1px), never a literal. These were 7px — the token's value
+     before the redesign moved --r to 12 — so the segments sat 5px inside the
+     shell's corner and its border read as a broken line at both ends. */
+  .seg-opt:first-child {
+    border-radius: calc(var(--r) - 1px) 0 0 calc(var(--r) - 1px) !important;
+    border-top: none !important;
+  }
+  .seg-opt:last-child {
+    border-radius: 0 calc(var(--r) - 1px) calc(var(--r) - 1px) 0 !important;
+  }
+  .seg-opt:not(:first-child) {
+    border-top: none !important;
+    border-left: 1px solid var(--field-border) !important;
+  }
+}
+
+/* ============================================================================
+   COMMON QUESTIONS accordion. Native <details>, so zero JS and keyboard
+   operable by default. No chevron and no plus/minus: the mark has no diagonal
+   and no circle, so state is carried by the marker's shift and the row height.
+   ========================================================================= */
+.faq-q {
+  cursor: pointer;
+  list-style: none;
+}
+.faq-q::-webkit-details-marker,
+.faq-q::marker {
+  display: none;
+  content: '';
+}
+/* THE ROW as a bounded card. `overflow: hidden` is what lets the open row's
+   answer sit inside the radius instead of squaring off the bottom corners. */
+.faq-row {
+  background: var(--surface-field);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  /* A shadow rather than a hairline. White on cream is a small tonal step, so
+     the row still needs SOMETHING to sit on — a soft shadow lifts it without
+     drawing a line around it. */
+  box-shadow: 0 1px 2px rgba(16, 37, 26, 0.04), 0 8px 24px -12px rgba(16, 37, 26, 0.10);
+  transition:
+    box-shadow 200ms ease-out,
+    background-color 200ms ease-out;
+}
+.faq-row[open],
+.faq-row:hover {
+  box-shadow: 0 1px 3px rgba(16, 37, 26, 0.06), 0 14px 32px -14px rgba(16, 37, 26, 0.16);
+}
+.faq-q {
+  padding: 20px 24px;
+  min-height: 68px;
+  align-items: center;
+}
+.faq-a {
+  padding: 0 24px 24px;
+  /* The answer indents to nothing. The question's own left edge is the column
+     the reader is already tracking, so an indent here would move the answer off
+     the only alignment the row has. */
+}
+
+/* THE PLUS -> MINUS PLATE.
+   The VERTICAL BAR rotates, not the plate. Rotating the plate was the first
+   attempt and it is wrong twice over: a 45 degree turn drags the horizontal bar
+   round with it, so the "minus" resting state is a DIAGONAL stroke — which
+   looks like a bug and breaks the no-diagonal rule this marker was chosen to
+   satisfy. Turning the vertical bar 90 degrees lays it over the horizontal one
+   instead, so the two resting states are a plus and a minus, both axis aligned,
+   and the only diagonal is a frame of the transition. */
+.faq-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--rule-strong);
+  color: var(--heading);
+  transition:
+    background-color 200ms ease-out,
+    border-color 200ms ease-out,
+    color 200ms ease-out;
+}
+.faq-mark__h,
+.faq-mark__v {
+  position: absolute;
+  background: currentColor;
+  border-radius: var(--r-bar);
+}
+.faq-mark__h {
+  width: 12px;
+  height: 2px;
+}
+.faq-mark__v {
+  width: 2px;
+  height: 12px;
+  transition: transform 260ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.faq-row[open] .faq-mark {
+  background: var(--gold-500);
+  border-color: var(--gold-500);
+  color: var(--green-900);
+}
+.faq-row[open] .faq-mark__v {
+  transform: rotate(90deg);
+}
+.faq-q:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--focus-ring),
+    0 0 0 4px var(--focus-keyline);
+  border-radius: var(--r-lg);
+}
+
+/* An inline marker beside trimmed text. Cap-trim makes the box top the cap top,
+   so centring the 5px bar on the cap band is (capHeight - barHeight) / 2, with
+   Manrope's cap at 0.72em. The previous hand-set 9px and 11px values were both
+   `capCentre - barHeight`, i.e. a full bar height too high. */
+.bar-sm--inline {
+  margin-top: calc((0.72em - var(--bar-sm-h)) / 2);
+}
+
+/* The accordion's own column is the measure here. The global 640px paragraph
+   cap stopped each answer 57px inside the rule that frames it AND pushed the
+   line to 81 characters; the column governs both correctly. */
+#questions .faq-row p {
+  max-width: none;
+}
+
+/* Unselected options carry a soft fill rather than a hairline, so they read as
+   controls without drawing an outline. */
+.gate-opt[data-on='false'] {
+  background: rgba(251, 250, 246, 0.07) !important;
+  border-color: transparent !important;
+}
+.gate-opt[data-on='false']:hover {
+  background: rgba(251, 250, 246, 0.13) !important;
+}
+
+/* A Gate option switches to weight 800 when selected, which widened its box and
+   shifted the row under the pointer. The bold width is reserved up front with a
+   hidden copy in the same grid cell, so only the visible glyphs change weight.
+
+   EVERY child that shares the cell must be an ELEMENT. `> *` does not match an
+   anonymous text item, so a bare label was auto-placed into a second implicit
+   row below the hidden copy and rendered low in its own pill. Gate.tsx wraps
+   the label in a span for exactly this reason. */
+.gate-opt {
+  display: inline-grid !important;
+  grid-template-areas: 'opt';
+  place-items: center;
+}
+.gate-opt > * {
+  grid-area: opt;
+}
+.gate-opt::before {
+  content: attr(data-label);
+  grid-area: opt;
+  font-weight: var(--w-mark);
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   ICON BADGE + CARD TILE (components/Icons.tsx)
+
+   REDESIGN: the plate is a CIRCLE. It was a rounded square, argued from the
+   mark having no closed circular path. The reference set is unanimous the other
+   way — every one of the ten uses a circular accent chip for section icons — and
+   the circle is what separates an icon plate from a card corner at a glance.
+
+   48 x 48 stays: it is already --bar-w, the button height and the field height,
+   so the plate lands on a footprint the page already owns.
+   ========================================================================= */
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: var(--r-pill);
+}
+.icon-badge > svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* The card's action tile — the references' corner button, now CIRCULAR and
+   outlined. Outlined rather than filled because the badge is the card's only
+   filled plate, and a second saturated 48px object would put three planes in
+   one card. It holds the .bar-sm, which .card:hover already advances 8px, so
+   the card still has exactly one moving part. --card-rule is set once per tone
+   in the card's own style block. */
+.card-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: var(--tile-rest-bg, rgba(127, 127, 127, 0.12));
+}
+
+/* ============================================================================
+   REDESIGN VOCABULARY — the devices the ten reference sites share.
+
+   Every one of these is a SHAPE borrowed from the references. None of them
+   carries borrowed CONTENT: there is no ratings row, no project counter, no
+   testimonial card and no "years in business" plate, because the page's one
+   governing rule is that a published company number makes every other claim
+   checkable. Where a reference fills a badge with "850+ Projects Completed",
+   the same badge here holds a figure a reader can verify in a register.
+   ========================================================================= */
+
+/* ---- THE ARROW PLATE ------------------------------------------------------
+   Auron, Inconsl and Current all end a link with a circular arrow. It exists
+   standalone (a card's corner action) and inside .btn as .btn__go.
+   40px, which is the counter-plate size, so the two never disagree. */
+.arrow-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--r-pill);
+  border: 1px solid transparent;
+  background: rgba(127, 127, 127, 0.12);
+  color: var(--heading);
+  transition:
+    background-color 200ms ease-out,
+    border-color 200ms ease-out,
+    color 200ms ease-out;
+}
+.arrow-plate > svg {
+  width: 16px;
+  height: 16px;
+}
+.arrow-plate--filled {
+  background: var(--gold-500);
+  border-color: var(--gold-500);
+  color: var(--green-900);
+}
+
+/* ---- THE FLOATING FACT BADGE ---------------------------------------------
+   The references hang a small accent card off a photograph's corner: "30+
+   Years", "560+ Projects Done", "50k+ Tons of CO2 Saved". The geometry is
+   adopted and the content is not — see the block comment above.
+
+   It is absolutely positioned by its caller, because where it overlaps is a
+   composition decision per photograph, not a component default. */
+.fact-badge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 20px 24px;
+  border-radius: var(--r-lg);
+  background: var(--gold-500);
+  color: var(--green-900);
+  box-shadow: 0 18px 40px -18px rgba(16, 37, 26, 0.55);
+}
+.fact-badge--green {
+  background: var(--green-900);
+  color: var(--on-dark);
+}
+.fact-badge__value {
+  font: var(--w-mark) 28px/32px var(--font);
+  /* Must match .num above. This rule sits later in the sheet at equal
+     specificity, so leaving it tabular would give the page two numeral
+     regimes with only this badge in the old one. */
+  font-variant-numeric: proportional-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+.fact-badge__label {
+  font: var(--w-ui) 11px/16px var(--font);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+/* ---- THE PHOTO FRAME ------------------------------------------------------
+   Rounded, clipped, and able to carry an offset accent block behind it — the
+   Electrician yellow-offset device. The block is a pseudo element so it costs
+   no markup and cannot be focused or read by a screen reader. */
+.photo {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  background: var(--green-800);
+}
+/* DESCENDANT, not child. Img wraps every photograph in <picture> so the
+   browser can pick AVIF/WebP/JPEG, which puts the <img> one level deeper than
+   these rules used to reach. A `>` here silently drops object-fit, the
+   saturation correction and the card hover scale all at once. */
+.photo picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.88);
+}
+.photo-offset {
+  position: relative;
+}
+/* The offset sits BEHIND: z-index 0 on the block, 1 on the frame. Both need an
+   explicit stacking position or the frame's own `overflow: hidden` context
+   wins and the block draws on top. */
+.photo-offset > .photo {
+  position: relative;
+  z-index: 1;
+}
+.photo-offset::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 24px -24px -24px 24px;
+  border-radius: var(--r-xl);
+  background: var(--gold-500);
+}
+@media (max-width: 767px) {
+  .photo-offset::before {
+    inset: 16px -16px -16px 16px;
+  }
+}
+
+/* ---- THE CHECKLIST --------------------------------------------------------
+   Ampvex, Catalxg and Biztop all run a two-column list of ticks in the accent
+   colour. The disc is gold with GREEN ink, never a gold tick on cream: gold is
+   2.31:1 there and a 3:1 non-text minimum applies to a meaningful glyph. */
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* THE DISC IS CENTRED ON THE CAP BAND, by the same arithmetic `.bar-sm--inline`
+   already uses: offset = (capHeight - markHeight) / 2, with Manrope's cap at
+   0.72em. That resolves to `0.36em - 11px` for a 22px disc.
+
+   It was a hardcoded `margin-top: 3px`, which put the disc 7.6px BELOW the cap
+   centre at 1440 and 8.2px below at 390 — and the error growing as the type
+   shrank is the signature of the bug: a fixed pixel nudge cannot track a font
+   size that is now a clamp. The em term does track it.
+
+   This requires the font size to be ON `.check-item`, not only on the label
+   span, or `em` here would resolve against the inherited size instead of the
+   text's. CheckItem in Primitives.tsx puts `text-body` on the <li> for exactly
+   that reason — do not move it back onto the span. */
+.check-item__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-top: calc(0.36em - 11px);
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--gold-500);
+  color: var(--green-900);
+}
+.check-item__mark > svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ---- THE FULL-BLEED ACCENT BAND ------------------------------------------
+   Mezan's yellow services block and Inconsl's dark stat strip. It breaks the
+   dark/cream alternation with a third ground, which is why it may appear ONCE:
+   a second one turns the exception into a rhythm and the alternation stops
+   reading as deliberate. */
+.ground-cream.band-gold,
+.band-gold {
+  background: var(--gold-500);
+  --heading: var(--green-900);
+  --body: #2a3d31;
+  --muted: #3d4f43;
+  --micro: var(--green-900);
+  --chip-bg: rgba(16, 37, 26, 0.14);
+  --rule: rgba(16, 37, 26, 0.22);
+  --rule-strong: rgba(16, 37, 26, 0.34);
+  --numeral: var(--green-900);
+  --bar-fill: var(--green-900);
+}
+/* Inside the gold band the accent word cannot RECOLOUR. Gold is the ground,
+   cream is 1.96:1 on it and illegal, and green-900 is already the colour of
+   the bold clause beside it — so recolouring resolved to no change at all.
+   It takes the rule treatment instead, in the band's own deep green. Same
+   device as cream uses, inverted. */
+.band-gold .accent-word {
+  background-image: linear-gradient(var(--green-900), var(--green-900));
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: 0 100%;
+  padding-bottom: 2px;
+  color: var(--green-900);
+}
+
+/* ---- SURFACE CARD ---------------------------------------------------------
+   The reference three-up where ONE card takes the accent ground. Biztop does
+   white / lime / dark-green; Catalxg and Auron highlight the middle price.
+   Here the weighted card takes deep green on a cream section, which is the
+   only tone pairing that works both ways round the alternation. */
+.surface {
+  border-radius: var(--r-lg);
+  background: var(--surface-field);
+}
+.surface--weighted {
+  background: var(--green-900);
+  border-color: var(--green-900);
+  --heading: var(--on-dark);
+  --body: var(--on-dark-body);
+  --muted: var(--on-dark-muted);
+  --micro: var(--gold-500);
+  --chip-bg: rgba(203, 161, 53, 0.16);
+  --rule: var(--rule-dark);
+  --rule-strong: var(--rule-dark-strong);
+  --numeral: var(--gold-500);
+  --bar-fill: var(--gold-500);
+  --card-rule: var(--rule-dark-strong);
+}
+
+/* ---- THE PHOTO TINT -------------------------------------------------------
+   Every photograph on this page is stock from a different shoot, so they
+   arrive with different white balances, different skies and different hi-vis
+   colours — one is neon yellow, one is a blue sky that fights the gold.
+
+   A single green multiply over all of them is what makes them read as one set.
+   It is also what the reference sites do, though they do it for atmosphere
+   rather than out of necessity: every dark-hero in the ten references is a
+   photograph under a brand-coloured wash.
+
+   NO `mix-blend-mode: multiply`. That was the first attempt and it veils
+   rather than deepens: multiply against a translucent gradient lifts the
+   image's midtones into a haze, which made the busiest photograph on the page
+   look out of focus rather than darker. A plain rgba overlay darkens
+   predictably, which is what the reference sites actually use.
+
+   The image also takes a small desaturation. The five photographs come from
+   five shoots and carry a neon yellow, a red, and a bright blue sky between
+   them; pulling saturation back 12% narrows that spread without touching the
+   files, so a real photograph dropped in later gets the same correction. */
+.photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--photo-tint-top, rgba(16, 37, 26, 0.16)) 0%,
+    var(--photo-tint-bottom, rgba(16, 37, 26, 0.34)) 100%
+  );
+}
+/* A photograph sitting ON the gold card needs more tint than one on cream or
+   green. The gold ground is light AND saturated, so a warm image on it has
+   neither a value gap nor a hue gap to separate the two — the panel wiring
+   shot in particular went muddy against it. Deepening the wash restores the
+   value gap without touching the image file, so a real photograph dropped in
+   later gets the same correction for free. */
+.photo--on-gold {
+  --photo-tint-top: rgba(16, 37, 26, 0.34);
+  --photo-tint-bottom: rgba(16, 37, 26, 0.52);
+}
+.photo--on-gold img {
+  /* Harder on the gold card than the 0.88 the others take: gold is a saturated
+     ground, so a saturated photograph on it has no hue gap to separate them. */
+  filter: saturate(0.7);
+}
+/* Opt out where the photograph IS the subject and colour accuracy matters more
+   than harmony — currently only the consumer unit, whose whole point is that
+   the labelling is legible. */
+.photo--true::after {
+  background: linear-gradient(180deg, rgba(16, 37, 26, 0.06) 0%, rgba(16, 37, 26, 0.12) 100%);
+}
+.photo--true img {
+  filter: none;
+}
+
+/* ============================================================================
+   DEPTH AND ORNAMENT — the second redesign pass.
+
+   The first pass changed the page's SURFACE (pills, tags, rounded cards) and
+   left its BONES alone: every section was still a rectangle sitting inside one
+   grid cell, and the result read as the old conservative page with softer
+   corners. What the reference set actually does, and this block supplies:
+
+     1. Elements that BREAK their box — a card crossing a section boundary, an
+        image overlapping another image.
+     2. Layered depth: card over photo over colour block.
+
+   A rotating circular stamp was the third and is gone: it is the single most
+   recognisable Framer/Webflow agency device on the web, it carried no
+   information its own logo did not already carry, and it was decorative motion
+   on a page whose whole argument is sobriety. Do not reintroduce it.
+
+   Ghost display type behind a heading was the fourth and has been taken out at
+   the client's call. Do not reintroduce it.
+
+   The old direction document forbade (1) outright — "the artwork contains no
+   element crossing another element's boundary, and the client made the
+   construction binding". The client has since asked for the reference language
+   explicitly, which supersedes it. Recorded rather than quietly reversed.
+   ========================================================================= */
+
+/* ---- THE OVERLAP ----------------------------------------------------------
+   A section that lets a child hang past its edge. `overflow: visible` is not
+   enough on its own: the NEXT section paints over anything that hangs down
+   into it, so the overlapping child needs a stacking context of its own and
+   the section below needs to stay behind it. */
+.section-overlap {
+  position: relative;
+  overflow: visible;
+}
+.overlap-down {
+  position: relative;
+  z-index: 3;
+  /* Half the element's own height, so it sits exactly astride the seam. The
+     caller supplies the value because only the caller knows the height. */
+  margin-bottom: var(--overlap, -64px);
+}
+
+/* ---- THE OVERLAPPING IMAGE PAIR -------------------------------------------
+   Electricien and Biztop both run a large photograph with a second, smaller
+   one crossing its corner. The small frame carries a ring in the SECTION's
+   ground colour, which is what reads as "in front" rather than "cut out". */
+.photo-pair {
+  position: relative;
+}
+.photo-pair__inset {
+  position: absolute;
+  z-index: 2;
+  width: 44%;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: 0 0 0 10px var(--ground, var(--cream-50));
+}
+@media (max-width: 767px) {
+  .photo-pair__inset {
+    width: 46%;
+    box-shadow: 0 0 0 6px var(--ground, var(--cream-50));
+  }
+}
+
+/* ---- THE SPARKLE ----------------------------------------------------------
+   Biztop and Inconsl both scatter a four point star as a section mark. Four
+   points, axis aligned, drawn with quadratic curves — no diagonal straight
+   edges, so it sits inside the icon set's own constraint. */
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  color: var(--gold-500);
+  opacity: 0.9;
+}
+
+/* ============================================================================
+   THE GATE ROW — label | options | answer on one baseline.
+
+   Three tracks rather than the old two, because the answer used to sit BELOW
+   the options inside the value column, which is what forced a placeholder
+   sentence onto its own line in every row. On its own track it needs only a
+   short "Not set" and the row stays one line tall until it has something to
+   say.
+   ========================================================================= */
+.gate-row {
+  display: grid;
+  grid-template-columns: minmax(190px, 3fr) minmax(0, 5fr) minmax(0, 4fr);
+  column-gap: var(--gutter);
+  align-items: center;
+  padding-block: 18px;
+}
+.gate-row__label {
+  align-self: center;
+}
+.gate-row__answer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 40px;
+}
+.gate-row__bar {
+  flex: none;
+}
+@media (max-width: 1023px) {
+  /* Stacked. Three tracks in a tablet measure gives the option pills about
+     150px, which is narrower than "Not required" plus its own padding. */
+  .gate-row {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 12px;
+    padding-block: 20px;
+  }
+  .gate-row__answer {
+    min-height: 0;
+  }
+}
+
+/* The For Contractors fact rows stack below the tablet breakpoint. A
+   minmax(150px, 4fr) label column against a 326px measure leaves the value
+   about 176px, which broke a registered office onto five lines and "West
+   Yorkshire and surrounding counties" onto four. Stacked, each gets the full
+   measure. */
+@media (max-width: 1023px) {
+  .fact-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 4px;
+    align-items: start !important;
+  }
+}
+
+
+/* ============================================================================
+   LONG UNBREAKABLE TOKENS
+
+   `info@ieselectricalrenewables.co.uk` is 34 characters with no space in it, so
+   it establishes a min-content width its container cannot go below. At 360px
+   that alone pushed the whole document to 406px and gave the page a horizontal
+   scrollbar; the same string overflowed its box again at 1024-1180, where the
+   contact column is narrow for a different reason.
+
+   `anywhere` rather than `break-word`: break-word only breaks a word that
+   would otherwise overflow ITS OWN line, and does not reduce the element's
+   min-content contribution — so the container stays too wide and the page
+   still scrolls. `anywhere` does reduce it, which is the actual fix.
+   ========================================================================= */
+.break-token {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* The handover fact badge hangs off the photo's outer edge only where there is
+   page margin behind it to hang into — the desktop composition. Stacked, the
+   photo spans the container and the overhang would put a gold slab against the
+   viewport edge. */
+@media (min-width: 1024px) {
+  :root {
+    --badge-overhang: -24px;
+  }
+}
+
+/* ============================================================================
+   THE BLUR PLACEHOLDER
+
+   Every .photo paints a 20px blur of its own image as a background (set inline
+   by lqipStyle in Img.tsx, ~1KB as a data URI so it costs no request). The real
+   file decodes on top of it.
+
+   That is the whole "smooth load": a frame is never an empty box, the
+   placeholder is already the right colours and shape, and the transition the
+   eye sees is blur to sharp rather than nothing to something. It also means a
+   slow connection shows a recognisable composition immediately.
+
+   The frame keeps a solid ground underneath in case the data URI is ever
+   stripped, so a failed placeholder degrades to flat green, never to white.
+   ========================================================================= */
+.photo {
+  background-color: var(--green-800);
+  background-repeat: no-repeat;
+}
+
+
+/* ============================================================================
+   MOBILE CORRECTIONS
+
+   Card titles reserve two lines so that three cards in a ROW start their body
+   copy on one line. Once the columns collapse there is no row to align to, and
+   a one word title like "Domestic" or "Renewables" left ~30px of dead space
+   under it before the body — which on a phone is the most expensive space on
+   the page. The reservation now applies only where the cards are side by side.
+   ========================================================================= */
+.card-title {
+  min-height: 0;
+}
+@media (min-width: 1024px) {
+  .card-title {
+    min-height: 64px;
+  }
+}
+
+/* Stacked, a fact row puts its label directly above its value with nothing
+   between them, and 4px read as a collision rather than a pair. */
+@media (max-width: 1023px) {
+  .fact-row {
+    row-gap: 7px !important;
+    padding-block: 16px !important;
+  }
+}
+
+/* TAP TARGETS.
+   The phone number in the hero strip was a 12px high anchor — the smallest
+   target on the page and the one a reader on a site gate is most likely to be
+   aiming at with a gloved thumb. The gate options were 40px, just under the
+   44px minimum. Both are raised here rather than at each call site so a new
+   caller cannot reintroduce the problem. */
+.lnk.tap,
+.gate-opt {
+  min-height: 44px;
+}
+.lnk.tap {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* A QUIET CALL TO ACTION.
+   The page's buttons are filled pills, and eight of the same object reads as a
+   uniform rather than a hierarchy. This is the tertiary step: no fill, no
+   outline at rest, just the label and a rule that grows in on hover. It is for
+   actions worth offering but not worth shouting — the FAQ's "send us the
+   scope", which sits under a phone number that is the real action there. */
+.btn--quiet {
+  min-height: 44px;
+  padding-inline: 0;
+  background: none;
+  border: 0;
+  color: var(--heading);
+  font: var(--w-ui) 16px/24px var(--font);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+.btn--quiet::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.35;
+  transform-origin: left;
+  transform: scaleX(1);
+  transition:
+    opacity 200ms ease-out,
+    transform 260ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.btn--quiet:hover::after {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn--quiet::after {
+    transition: opacity 200ms ease-out;
+  }
+}

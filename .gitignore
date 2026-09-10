@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+.env*
+
+# Working files, not source.
+screenshots/
+_deliverables/
+*.zip
+.api-parked/
