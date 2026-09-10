@@ -1,0 +1,57 @@
+# Builds the static site and publishes it to the `deploy` branch.
+#
+# WHY: Hostinger's Git integration copies a branch into public_html as-is — it
+# does not run a build. Pointed at `main` it served the SOURCE (package.json,
+# app/page.tsx) and no index.html, which Apache answers with 403 Forbidden.
+# `deploy` holds only the finished site, with index.html and the generated
+# .htaccess at its root, so Hostinger can pull it straight in.
+#
+# Point Hostinger's Git deployment at the `deploy` branch, not `main`.
+name: Deploy static site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Playwright is a devDependency for local screenshots only; CI never
+      # needs its browsers, and downloading them adds minutes for nothing.
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Images in public/img are committed, so no Python step is needed here.
+      - run: npm run build:static
+
+      - name: Publish ./out to the deploy branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: deploy
+          publish_dir: ./out
+          # Only the latest build lives on `deploy`, so it never accumulates
+          # a history of every image variant ever generated.
+          force_orphan: true
+          # Suppresses the .nojekyll marker. It means nothing to Apache.
+          enable_jekyll: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: Deploy ${{ github.sha }}
